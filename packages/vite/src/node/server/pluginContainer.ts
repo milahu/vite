@@ -281,10 +281,18 @@ export async function createPluginContainer(
           : // some rollup plugins, e.g. json, sets position instead of pos
             (err as any).position
       if (pos != null) {
-        err.loc = err.loc || {
-          file: err.id,
-          ...numberToPos(ctx._activeCode, pos)
+        let errLocation;
+        try {
+          errLocation = numberToPos(ctx._activeCode, pos);
         }
+        catch (err2) {
+          console.log(`formatError: error in numberToPos (${err2}) while handling the error:`);
+          throw err;
+        }
+        err.loc = err.loc || {
+            file: err.id,
+            ...errLocation
+        };
         err.frame = err.frame || generateCodeFrame(ctx._activeCode, pos)
       } else if (err.loc) {
         // css preprocessors may report errors in an included file
